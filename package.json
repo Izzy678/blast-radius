@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts",
-    "check": "tsx --env-file-if-exists=.env.local scripts/check-scenario.ts"
+    "seed": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed.ts",
+    "check": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/check-scenario.ts",
+    "mcp": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/mcp-server.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "falkordb": "^6.8.0",
     "next": "16.4.0",
     "react": "19.3.0",
