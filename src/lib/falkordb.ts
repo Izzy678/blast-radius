@@ -4,7 +4,10 @@ import { FalkorDB } from "falkordb";
 export const falkordbConfig = {
   host: process.env.FALKORDB_HOST ?? "localhost",
   port: Number(process.env.FALKORDB_PORT ?? 6379),
+  username: process.env.FALKORDB_USERNAME || undefined,
   password: process.env.FALKORDB_PASSWORD || undefined,
+  // FalkorDB Cloud may require TLS; local Docker doesn't.
+  tls: process.env.FALKORDB_TLS === "true",
   graph: process.env.FALKORDB_GRAPH ?? "supplychain",
 };
 
@@ -14,9 +17,11 @@ const globalForDb = globalThis as unknown as { falkordb?: Promise<FalkorDB> };
 
 export function getDb(): Promise<FalkorDB> {
   if (!globalForDb.falkordb) {
+    const { host, port, tls, username, password } = falkordbConfig;
     globalForDb.falkordb = FalkorDB.connect({
-      socket: { host: falkordbConfig.host, port: falkordbConfig.port },
-      password: falkordbConfig.password,
+      socket: tls ? { host, port, tls: true } : { host, port },
+      username,
+      password,
     }).catch((err) => {
       // Drop the failed promise so the next call retries instead of failing forever.
       globalForDb.falkordb = undefined;
