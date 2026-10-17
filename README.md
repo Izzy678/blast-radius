@@ -87,10 +87,10 @@ Use **public or made-up data only**: a synthetic generator for packages, repos, 
 
 ### Run FalkorDB in Docker
 ```bash
-docker run -d --name falkordb -p 6379:6379 -p 3001:3000 falkordb/falkordb:latest
+docker run -d --name falkordb -p 6379:6379 -p 3002:3000 falkordb/falkordb:latest
 ```
 - `6379` is the database port.
-- `3001` serves the FalkorDB Browser UI, which runs on 3000 inside the container. It's mapped to 3001 so it doesn't clash with `next dev` on 3000.
+- `3002` serves the FalkorDB Browser UI, which runs on 3000 inside the container. It's mapped to 3002 so it doesn't clash with `next dev` on 3000 (3001 is used by another local project).
 
 ### Connection env vars
 Copy `.env.example` to `.env.local` and fill it in:
@@ -98,6 +98,7 @@ Copy `.env.example` to `.env.local` and fill it in:
 FALKORDB_HOST=localhost
 FALKORDB_PORT=6379
 FALKORDB_PASSWORD=
+FALKORDB_GRAPH=supplychain
 ```
 These are read in `src/lib/falkordb.ts`.
 
@@ -107,7 +108,13 @@ docker ps --filter name=falkordb            # container is up
 docker exec -it falkordb redis-cli PING     # should print PONG
 docker exec -it falkordb redis-cli GRAPH.QUERY test "RETURN 1"
 ```
-You can also open http://localhost:3001 to use FalkorDB Browser.
+You can also open http://localhost:3002 to use FalkorDB Browser.
+
+### Seed the graph
+```bash
+npm install
+npm run seed    # wipes and reloads the `supplychain` graph from src/data/seed-data.ts
+```
 
 ---
 

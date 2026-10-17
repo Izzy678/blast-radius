@@ -49,4 +49,4 @@ Seed data: about 40 packages, 12 repos, 10 services, 15 customers (with `arr_usd
 ## Working style
 - Commit after each working step with a clear message.
 - Run `npx tsc --noEmit` and `npm run lint` before each commit.
-- Ports: Next.js on 3000, FalkorDB on 6379, FalkorDB Browser on 3001.
+- Ports: Next.js on 3000, FalkorDB on 6379, FalkorDB Browser on 3002 (3001 is taken by another local project).
