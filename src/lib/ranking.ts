@@ -11,7 +11,7 @@
  *    they put at risk; dev-only repos last.
  */
 import type { BlastRadiusRow, Cve, CustomerSummary, DependentRepo, Ownership } from "./tools/graph-tools";
-import type { GraphPath } from "./tools/types";
+import type { GraphPath, PathNode, Scope } from "./tools/types";
 
 const SLA_WEIGHT: Record<string, number> = { platinum: 1.5, gold: 1.25, silver: 1, bronze: 0.8 };
 
@@ -58,7 +58,13 @@ export type BlastRadiusReport = {
   };
   customers: RankedCustomer[];
   fix_order: RepoFix[];
+  /** Every node and edge on any traversed path, for drawing the cascade. */
+  graph: CascadeGraph;
 };
+
+export type CascadeNode = PathNode & { id: string; scope: "prod" | "dev" };
+export type CascadeEdge = { from: string; to: string; rel: string; scope: "prod" | "dev" };
+export type CascadeGraph = { nodes: CascadeNode[]; edges: CascadeEdge[] };
 
 const pathLen = (p: GraphPath) => p.rels.length;
 
@@ -170,7 +176,35 @@ export function rankBlastRadius(
     },
     customers,
     fix_order: repoFixes.map((r, i) => ({ ...r, order: i + 1 })),
+    graph: buildCascade([
+      ...rows.map((r) => ({ path: r.path, scope: r.scope })),
+      ...dependentRepos.map((r) => ({ path: r.path, scope: r.scope })),
+    ]),
   };
+}
+
+/**
+ * Merge paths into one node/edge set. A node or edge is "prod" if any prod path
+ * uses it. Node ids are label-qualified because a repo and a service could share a name.
+ */
+function buildCascade(paths: { path: GraphPath; scope: Scope }[]): CascadeGraph {
+  const nodes = new Map<string, CascadeNode>();
+  const edges = new Map<string, CascadeEdge>();
+  const idOf = (n: PathNode) => `${n.label}:${n.name}`;
+
+  for (const { path, scope } of paths) {
+    path.nodes.forEach((n, i) => {
+      const id = idOf(n);
+      const existing = nodes.get(id);
+      if (!existing || (scope === "prod" && existing.scope === "dev")) nodes.set(id, { ...n, id, scope });
+      if (i === 0) return;
+      const from = idOf(path.nodes[i - 1]);
+      const key = `${from}->${id}`;
+      const e = edges.get(key);
+      if (!e || (scope === "prod" && e.scope === "dev")) edges.set(key, { from, to: id, rel: path.rels[i - 1], scope });
+    });
+  }
+  return { nodes: [...nodes.values()], edges: [...edges.values()] };
 }
 
 function trimPathAt(path: GraphPath, nodeName: string): GraphPath {
