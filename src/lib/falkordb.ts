@@ -49,3 +49,15 @@ export async function runQuery<T>(
   const ms = Math.round((performance.now() - start) * 100) / 100;
   return { rows: res.data ?? [], cypher, params, ms };
 }
+
+/** Same as runQuery but allowed to write. Only fix plans (and seeding) write to the graph. */
+export async function runWrite<T>(
+  cypher: string,
+  params: QueryParams = {},
+): Promise<{ rows: T[]; cypher: string; params: QueryParams; ms: number }> {
+  const graph = await getGraph();
+  const start = performance.now();
+  const res = await graph.query<T>(cypher, { params });
+  const ms = Math.round((performance.now() - start) * 100) / 100;
+  return { rows: res.data ?? [], cypher, params, ms };
+}

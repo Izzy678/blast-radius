@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts"
+    "seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts",
+    "check": "tsx --env-file-if-exists=.env.local scripts/check-scenario.ts"
   },
   "dependencies": {
     "falkordb": "^6.8.0",
